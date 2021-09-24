@@ -139,10 +139,7 @@
 							<goal>schema</goal>
 						</goals>
 						<configuration>
-							<sourceDirectory>${project.basedir}/src/main/resources/avro/io/confluent/examples/clients/basicavro/</sourceDirectory>
-							<includes>
-								<include>Payment.avsc</include>
-							</includes>
+							<sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
 							<outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
 						</configuration>
 					</execution>

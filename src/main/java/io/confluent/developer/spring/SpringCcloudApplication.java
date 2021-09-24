@@ -28,11 +28,12 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import io.confluent.developer.avro.Hobbit;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 
 @SpringBootApplication
-@EnableKafkaStreams
+//@EnableKafkaStreams
 public class SpringCcloudApplication {
 
 	public static void main(String[] args) {
@@ -40,8 +41,8 @@ public class SpringCcloudApplication {
 	}
 
 	@Bean
-	NewTopic hobbit2() {
-		return TopicBuilder.name("hobbit2").partitions(12).replicas(3).build();
+	NewTopic hobbitAvro() {
+		return TopicBuilder.name("hobbit-arvo").partitions(12).replicas(3).build();
 	}
 
 	@Bean
@@ -55,7 +56,7 @@ public class SpringCcloudApplication {
 @Component
 class Producer {
 
-	private final KafkaTemplate<Integer, String> template;
+	private final KafkaTemplate<Integer, Hobbit> template;
 
 	Faker faker;
 
@@ -67,12 +68,15 @@ class Producer {
 
 		final Flux<String> quotes = Flux.fromStream(Stream.generate(() -> faker.hobbit().quote()));
 
+//		Flux.zip(interval, quotes)
+//			 	.map(it -> template.send("hobbit", faker.random().nextInt(42), it.getT2())).blockLast();
 		Flux.zip(interval, quotes)
-			 	.map(it -> template.send("hobbit", faker.random().nextInt(42), it.getT2())).blockLast();
+			 	.map(it -> template.send("hobbit-arvo", faker.random()
+						.nextInt(42), new Hobbit(it.getT2()))).blockLast();
 	}
 }
 
-@Component
+/*@Component
 class Consumer {
 	@KafkaListener(topics= {"hobbit"}, groupId="spring-boot-kafka")
 //	public void consume(String quote) {
@@ -80,7 +84,19 @@ class Consumer {
 //		System.out.println("received= " + quote);
 		System.out.println("received= " + record.value() + "with key" + record.key());
 	}
+}*/
+
+@Component
+class Consumer {
+	@KafkaListener(topics= {"hobbit-arvo"}, groupId="spring-boot-kafka")
+//	public void consume(String quote) {
+	public void consume(ConsumerRecord<Integer, Hobbit> record) {
+//		System.out.println("received= " + quote);
+		System.out.println("received= " + record.value() + "with key" + record.key());
+	}
 }
+
+/*
 
 //TODO https://developer.confluent.io/learn-kafka/kafka-streams/get-started/
 @Component
@@ -100,4 +116,4 @@ class Processor {
 
 		wordCounts.toStream().to("streams-wordcount-output1", Produced.with(stringSerde, longSerde));
 	}
-}
+}*/
